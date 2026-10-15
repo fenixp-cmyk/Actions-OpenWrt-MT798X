@@ -151,24 +151,11 @@ jobs:
       id: cache-key
       run: |
         cd openwrt
-        
-        # 1. 打印 defconfig 的输出，方便排查是否报错
-        make defconfig
+        make defconfig 1>/dev/null 2>&1
 
-        # 2. 检查 .config 文件是否存在
-        if [ ! -f ".config" ]; then
-          echo "❌ 错误: .config 文件不存在！"
-          exit 1
-        fi
-
-        # 3. 提取目标平台（加入默认值兜底，避免 grep 失败导致脚本退出）
-        TARGET=$(grep '^CONFIG_TARGET_BOARD=' .config | cut -d'"' -f2 || true)
-        SUBTARGET=$(grep '^CONFIG_TARGET_SUBTARGET=' .config | cut -d'"' -f2 || true)
-
-        if [ -z "$TARGET" ]; then
-          echo "❌ 错误: 无法从 .config 中提取 CONFIG_TARGET_BOARD，请检查配置文件是否正确！"
-          exit 1
-        fi
+        # 提取目标平台
+        TARGET=$(grep '^CONFIG_TARGET_BOARD=' .config | cut -d'"' -f2)
+        SUBTARGET=$(grep '^CONFIG_TARGET_SUBTARGET=' .config | cut -d'"' -f2)
 
         # 基于 tools/ 和 toolchain/ 源码生成 hash
         TOOLS_HASH=$(find tools toolchain -type f \( -name "Makefile" -o -name "*.mk" \) \
